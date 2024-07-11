@@ -5,7 +5,29 @@ https://claude.ai was used to rewrite js into python, so this is the reason why 
 
 from typing import Match
 import re
+import regex  # more powerful package for lookbehind with variable length
+from itertools import product
 
+def generate_combinations(text, symbols):
+    """Need this func for word sets like "для таго каб" (look at nbsp_multiple_words.txt)
+    and for all their combinations with usual space symbol and NBSP-symbol.
+    generate_combinations('для таго каб', [' ', '_NBSP_']) =>
+     ['для таго каб',
+     'для таго_NBSP_каб',
+     'для_NBSP_таго каб',
+     'для_NBSP_таго_NBSP_каб']
+    """
+    words = text.split()
+    spaces = len(words) - 1
+    # Generate all possible combinations of symbols
+    symbol_combinations = product(symbols, repeat=spaces)
+    result = []
+    for combination in symbol_combinations:
+        new_text = words[0]
+        for i, symbol in enumerate(combination):
+            new_text += symbol + words[i + 1]
+        result.append(new_text)
+    return result
 
 class ByTypograph:
     def __init__(self, calendar_file_path, nbsp_before_file, nbsp_after_file, nbsp_multiple_words_file):
@@ -42,6 +64,11 @@ class ByTypograph:
             with open(nbsp_file_path, 'r', encoding='utf-8') as file:
                 nbsp_words.append('|'.join(file.readlines()).replace("\n", ""))
         before_nbsp, after_nbsp, multiple_words_nbsp = nbsp_words
+
+        multiples = []
+        for m in multiple_words_nbsp.split('|'):
+            multiples.extend(generate_combinations(m, [' ', '\u00A0']))
+        multiple_words_nbsp = "|".join(multiples)
 
         return {
             "month": month,
@@ -129,33 +156,6 @@ class ByTypograph:
         return ''.join(new_string)
 
     @staticmethod
-    def replace_quotes(text):
-        stack = []
-        result = []
-
-        for char in text:
-            if char in "\"'":
-                if not stack or stack[-1] == 'close':
-                    # Opening quote
-                    stack.append('open')
-                    if len(stack) % 2 == 1:
-                        result.append('«')
-                    else:
-                        result.append('„')
-                else:
-                    # Closing quote
-                    stack.pop()
-                    if len(stack) % 2 == 0:
-                        result.append('»')
-                    else:
-                        result.append('"')
-            else:
-                result.append(char)
-
-        return ''.join(result)
-
-
-    @staticmethod
     def delete_spaces(string_to_parse):
         # Remove spaces AFTER « „ " ' ( [
         string_to_parse = re.sub(r"""([«„"'(\[])\s+""", r'\1', string_to_parse)
@@ -213,17 +213,26 @@ class ByTypograph:
 
         # Non-breaking space BEFORE words
         string_to_parse = re.sub(
-            rf"[\u0020\u00A0]({self.before_nbsp})([^A-ZА-ЯЁІЎЄҐЇа-яёіўєґїґ'])",
+            rf"[\u0020\u00A0]({self.before_nbsp})([^a-zа-яёіўєґїґ'])",
             lambda m: f"{nbsp}{m.group(1)}{m.group(2)}",
-            string_to_parse, flags=re.IGNORECASE
+            string_to_parse
         )
 
         # Non-breaking space AFTER certain words
-        string_to_parse = re.sub(
-            rf'(^|[\u0020\u00A0«„"(\[])({self.after_nbsp})\u0020',
-            lambda m: f"{m.group(1)}{m.group(2)}{nbsp}",
-            string_to_parse, flags=re.IGNORECASE | re.MULTILINE
+        # string_to_parse = re.sub(
+        #     rf'(^|[\u0020\u00A0«„"(\[])({self.after_nbsp})\u0020',
+        #     lambda m: f"{m.group(1)}{m.group(2)}{nbsp}",
+        #     string_to_parse, flags=re.IGNORECASE | re.MULTILINE
+        # )
+        """this version is smarter, it has lookbehind 
+        and it helps in cases like `Ну а калі так здарыцца`
+        (commented version above does not work properly)"""
+        string_to_parse = regex.sub(
+            rf"""(?<=(^|[\n\u0020\u00A0«„"([])({self.after_nbsp}))\u0020""",
+            lambda m: f"{nbsp}",
+            string_to_parse, flags=re.IGNORECASE
         )
+
 
         # Non-breaking space AFTER "стр.", "гл.", "рис.", "илл.", "ст.", "п.", "c."
         string_to_parse = re.sub(
@@ -260,18 +269,19 @@ class ByTypograph:
             string_to_parse, flags=re.MULTILINE
         )
 
-        # Non-breaking space AFTER "литер"
-        string_to_parse = re.sub(
-            r'(^|,[\u0020\u00A0])(литера?)\u0020([A-ZА-ЯЁІЎЄҐЇ])',
-            lambda m: f"{m.group(1)}{m.group(2)}{nbsp}{m.group(3)}",
-            string_to_parse, flags=re.MULTILINE
-        )
-
         # Non-breaking space AFTER short word
-        string_to_parse = re.sub(
-            r"""(^|[\u0020\u00A0«„"(\[])([а-яёіўєґї']{1,3})\u0020""",
-            lambda m: f"{m.group(1)}{m.group(2)}{nbsp}",
-            string_to_parse, flags=re.IGNORECASE | re.MULTILINE
+        # string_to_parse = re.sub(
+        #     r"""(^|[\u0020\u00A0«„"(\[])([а-яёіўєґї']{1,3})\u0020""",
+        #     lambda m: f"{m.group(1)}{m.group(2)}{nbsp}",
+        #     string_to_parse, flags=re.IGNORECASE
+        # )
+        """this version is smarter, it has lookbehind 
+        and it helps in cases like `І з гэтага гаю яна выйшла`
+        (commented version above does not work properly)"""
+        string_to_parse = regex.sub(
+            r"""(?<=(^|[\n\u0020\u00A0«„([])([а-яёіўєґї']{1,3}))\u0020""",
+            lambda m: f"{nbsp}",
+            string_to_parse, flags=re.IGNORECASE
         )
 
         # Non-breaking space BEFORE last short word in sentence or single line
@@ -279,6 +289,15 @@ class ByTypograph:
             r"\u0020([а-яёіўєґї']{1,3}[!?…»]?$)",
             lambda m: f"{nbsp}{m.group(1)}",
             string_to_parse, flags=re.IGNORECASE | re.MULTILINE
+        )
+
+        # put NBSP between any words from nbsp_multiple_words.txt
+        string_to_parse = re.sub(
+            rf"([^a-zа-яёіўєґїґ'])({by_typo.multiple_words_nbsp})([^a-zа-яёіўєґїґ']|$)",
+            lambda
+                m: f"{m.group(1)}{m.group(2).replace('\u0020', nbsp)}{nbsp if m.group(3) == '\u0020' else m.group(3)}",
+            string_to_parse,
+            flags=re.IGNORECASE
         )
 
         for pattern in [
@@ -293,6 +312,14 @@ class ByTypograph:
                 lambda m: f"{nbsp}{m.group(1)}",
                 string_to_parse, flags=re.IGNORECASE | re.MULTILINE
             )
+
+        # ADDITIONAL STEP TO REMOVE Non-breaking space after words from before_nbsp list words
+        # 'Каманда_NBSP_б_NBSP_убачыла' => 'Каманда_NBSP_б убачыла'
+        string_to_parse = re.sub(
+            rf"[\u0020\u00A0]({self.before_nbsp})(\u00A0)",
+            lambda m: f"{nbsp}{m.group(1)} ",
+            string_to_parse
+        )
 
         return string_to_parse
 
@@ -309,6 +336,25 @@ class ByTypograph:
         def replace(match):
             vowel, space, y = match.groups()
             return vowel + (space if space in match.group(0) else '') + ('ў' if y == 'у' else 'Ў')
+
+        # Perform the replacement
+        return re.sub(pattern, replace, string_to_parse,
+                      flags=re.MULTILINE
+                      )
+
+    @staticmethod
+    def replace_short_u_with_y(string_to_parse):
+        # Define Belarusian vowels
+        vowels = 'аеёіоуыэюяАЕЁІОУЫЭЮЯ'
+
+        # Pattern to match 'у' or 'У' preceded by a vowel,
+        # including across word boundaries
+        pattern = rf'(^|[^\s{vowels}])(\s*)([ўЎ])'
+
+        # Replace function
+        def replace(match):
+            not_vowel, space, y = match.groups()
+            return not_vowel + (space if space in match.group(0) else '') + ('у' if y == 'ў' else 'У')
 
         # Perform the replacement
         return re.sub(pattern, replace, string_to_parse, flags=re.MULTILINE)
@@ -599,12 +645,12 @@ class ByTypograph:
     def run_typographical_enhancement(self, text):
         functions = [
             self.punctuation,
-            self.replace_quote_marks,
-            # self.replace_quotes,
             self.delete_spaces,
+            self.replace_quote_marks,
             self.remove_end_dot_in_single_string,
             self.add_no_break_space,
             self.replace_y_with_short_u,
+            self.replace_short_u_with_y,
             # yo,
             # phone_number,
             self.dash,
@@ -616,6 +662,11 @@ class ByTypograph:
             result = f(result)
         return result
 
+
+default_typo = ByTypograph(r'resources/month_weekdays.txt',
+                          r'resources/nbsp_before_words.txt',
+                          'resources/nbsp_after_words.txt',
+                          'resources/nbsp_multiple_words.txt')
 
 if __name__ == "__main__":
     with open('resources/test_text.txt') as f:
@@ -629,5 +680,8 @@ if __name__ == "__main__":
     # print(by_typo.before_nbsp, by_typo.after_nbsp, by_typo.multiple_words_nbsp, sep='\n\n')
     result = by_typo.run_typographical_enhancement(test_text)
 
-    print(result.replace("\u00A0", "_NBSP_"))
+    # print(result)
+    # print(result.replace("\u00A0", "_NBSP_"))
 
+
+    print(result.replace("\u00A0", "_NBSP_"))
