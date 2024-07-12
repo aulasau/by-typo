@@ -1,12 +1,13 @@
 """
-Adaption of https://github.com/DanilovM/SBOLTypograph to Python and Belarusian.
-https://claude.ai was used to rewrite js into python, so this is the reason why all functions aren't written in the same style
+Adaptation of https://github.com/DanilovM/SBOLTypograph to Python and Belarusian.
+https://claude.ai was used to rewrite js into python, so this is why all functions aren't written in the same style
 """
 
 from typing import Match
 import re
-import regex  # more powerful package for lookbehind with variable length
+import regex  # more powerful package for lookbehinds with variable length
 from itertools import product
+
 
 def generate_combinations(text, symbols):
     """Need this func for word sets like "для таго каб" (look at nbsp_multiple_words.txt)
@@ -28,6 +29,7 @@ def generate_combinations(text, symbols):
             new_text += symbol + words[i + 1]
         result.append(new_text)
     return result
+
 
 class ByTypograph:
     def __init__(self, calendar_file_path, nbsp_before_file, nbsp_after_file, nbsp_multiple_words_file):
@@ -123,13 +125,13 @@ class ByTypograph:
     @staticmethod
     def replace_quote_marks(string_to_parse):
         # Replace opening quotes
-        string_to_parse = re.sub(r"""(^|\s)["']""", r'\1«', string_to_parse)
-        string_to_parse = re.sub(r"""(«)["']""", r'\1«', string_to_parse)
+        string_to_parse = re.sub(r"""(^|\s)["'„“]""", r'\1«', string_to_parse)
+        string_to_parse = re.sub(r"""(«)["'„“]""", r'\1«', string_to_parse)
 
         # Replace closing quotes
-        string_to_parse = re.sub(r"""(\S)["']([\W"'»,.…:;!?})\]]|$)""", r'\1»\2',
+        string_to_parse = re.sub(r"""(\S)["'”]([\W"'»,.…:;!?})\]]|$)""", r'\1»\2',
                                  string_to_parse)
-        string_to_parse = re.sub(r"""(»)["']""", r'\1»', string_to_parse)
+        string_to_parse = re.sub(r"""(»)["'”]""", r'\1»', string_to_parse)
 
         # Replace nested quotes
         new_string = []
@@ -157,11 +159,11 @@ class ByTypograph:
 
     @staticmethod
     def delete_spaces(string_to_parse):
-        # Remove spaces AFTER « „ " ' ( [
-        string_to_parse = re.sub(r"""([«„"'(\[])\s+""", r'\1', string_to_parse)
+        # Remove spaces AFTER « „ “ " ' ( [
+        string_to_parse = re.sub(r"""([«„“"'(\[])\s+""", r'\1', string_to_parse)
 
         # Remove spaces BEFORE . … : , ; ? ! » “ " ' ) ]
-        string_to_parse = re.sub(r"""\s+([.…:,;?!»“"')\]])""", r'\1', string_to_parse)
+        string_to_parse = re.sub(r"""\s+([.…:,;?!»”"')\]])""", r'\1', string_to_parse)
 
         # Remove spaces between a number and %
         string_to_parse = re.sub(r'(\d)\s+(%)', r'\1\2', string_to_parse)
@@ -293,7 +295,7 @@ class ByTypograph:
 
         # put NBSP between any words from nbsp_multiple_words.txt
         string_to_parse = re.sub(
-            rf"([^a-zа-яёіўєґїґ'])({by_typo.multiple_words_nbsp})([^a-zа-яёіўєґїґ']|$)",
+            rf"([^a-zа-яёіўєґїґ'])({self.multiple_words_nbsp})([^a-zа-яёіўєґїґ']|$)",
             lambda
                 m: f"{m.group(1)}{m.group(2).replace('\u0020', nbsp)}{nbsp if m.group(3) == '\u0020' else m.group(3)}",
             string_to_parse,
@@ -362,7 +364,7 @@ class ByTypograph:
     @staticmethod
     def yo(string_to_parse, yo_dict):
         """
-        Not really need it for belarusian, but as legacy let it be here
+        Not really need it for Belarusian, but as legacy let it be here.
         """
 
         def replace_word(match):
@@ -403,8 +405,8 @@ class ByTypograph:
     @staticmethod
     def phone_number(string_to_parse, phone_code_ru, nbsp='\u00A0'):
         """
-        Not sure that this functionality is in the scope, but let bring it here as template.
-        Haven't tested it. Should work for russian numbers.
+        Not sure that this functionality is in the scope, but let bring it here as legacy.
+        Haven't tested it.
         """
         # Space or non-breaking space
         space_tmpl = r'[\u0020\u00A0]?'
@@ -645,9 +647,9 @@ class ByTypograph:
     def run_typographical_enhancement(self, text):
         functions = [
             self.punctuation,
-            self.delete_spaces,
             self.replace_quote_marks,
-            self.remove_end_dot_in_single_string,
+            self.delete_spaces,
+            # self.remove_end_dot_in_single_string,
             self.add_no_break_space,
             self.replace_y_with_short_u,
             self.replace_short_u_with_y,
