@@ -3,23 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Text Formatter</title>
+    <title>By-Typograph</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
-    <style>
-        /* ... (same CSS as before) ... */
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="sloth_icon.png" type="image/x-icon"/>
 </head>
 <body>
-    <h1>Text Formatter</h1>
-    <textarea id="input" placeholder="Enter unformatted text here"></textarea>
-    <button onclick="formatText()" id="formatButton">Format Text</button>
-    <textarea id="output" readonly placeholder="Formatted text will appear here"></textarea>
-    <div id="loading">Loading...</div>
+    <div class="container">
+        <h1>By-Typo</h1>
+
+        <div class="text-areas">
+            <div class="input-group">
+                <label for="input">Тэкст для выпраўлення:</label>
+                <textarea id="input" placeholder="Пішы тут..."></textarea>
+            </div>
+            <div class="output-group">
+                <label for="output">Выпраўлены:</label>
+                <textarea id="output" readonly placeholder="Атрымлівай выйгрыш тут!"></textarea>
+            </div>
+        </div>
+        <button onclick="formatText()" id="formatButton">
+            <div id="loading"><div class="spinner"></div><span>Processing...</span></div>
+            Format Text
+        </button>
+
+    </div>
 
     <script>
         let pyodide;
         let default_typo;
         let fileContent; // Declare the global variable
+
+        formatButton.disabled = true;
+
         async function load_it() {
             pyodide = await loadPyodide();
             await pyodide.loadPackage("micropip");
@@ -27,8 +44,6 @@
                 import micropip
                 await micropip.install('regex')
             `);
-
-            document.getElementById('loading').textContent = 'Downloading repository...';
 
 
             // File names to be loaded
@@ -60,16 +75,16 @@
                     for (const fileName of resourceFileNames) {
                         const filePath = `resources/${fileName}`;
                         const content = await loadFile(filePath);
-                        
+
                         // Write the file to Pyodide filesystem
                         pyodide.FS.writeFile(filePath, content, { encoding: "utf8" });
                         console.log(`File ${fileName} loaded and written successfully`);
                     }
-                    
+
                     const pythonCode = await loadFile(codeFileName);
                     pyodide.FS.writeFile(codeFileName, pythonCode, { encoding: "utf8" });
                     console.log(`File ${codeFileName} loaded and written successfully`);
-                    
+
                     // Example: Read and print contents of a file using Python
                     // await pyodide.runPythonAsync(`
                     //     with open("typography_utils.py") as f:
@@ -85,19 +100,17 @@
                 }
             }
 
-            // Call the function to load and write files
-            loadAndWriteFiles();
-
-            async function move_files() {
+            async function load_typograph() {
                 await pyodide.runPythonAsync(`
                     from typography_utils import default_typo
-                    
-                    print(default_typo.weekday)
                     #print('HELLO')
                 `)
             }
-            setTimeout(move_files, 1000)
-            // await move_files()
+            // Call the function to load and write files
+            await loadAndWriteFiles();
+            // Load python module
+            await load_typograph()
+            formatButton.disabled = false;
         }
 
         load_it();
@@ -110,9 +123,6 @@
             const loadingElement = document.getElementById('loading');
             const formatButton = document.getElementById('formatButton');
 
-            loadingElement.textContent = 'Processing...';
-            loadingElement.style.display = 'inline';
-            outputElement.value = '';
             formatButton.disabled = true;
 
             try {
@@ -130,10 +140,10 @@
                 outputElement.value = `Error: ${error.message}`;
                 console.error('Error during text formatting:', error);
             } finally {
-                loadingElement.style.display = 'none';
                 formatButton.disabled = false;
             }
         }
     </script>
+
 </body>
 </html>

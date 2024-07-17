@@ -534,8 +534,6 @@ class ByTypograph:
                                       integer_part)
 
             fractional_part = f',{fractional_part}' if fractional_part else ''
-            if fractional_part:
-                counter_replace_dot_with_comma += 1
 
             currency_part = currency_part or ''
             return f'{integer_part}{fractional_part}{currency_part}'
@@ -645,6 +643,8 @@ class ByTypograph:
         return string_to_parse
 
     def run_typographical_enhancement(self, text):
+        from time import sleep
+        # sleep(2)
         functions = [
             self.punctuation,
             self.replace_quote_marks,
