@@ -159,8 +159,8 @@ class ByTypograph:
 
     @staticmethod
     def delete_spaces(string_to_parse):
-        # Remove spaces AFTER « „ “ " ' ( [
-        string_to_parse = re.sub(r"""([«„“"'(\[])\s+""", r'\1', string_to_parse)
+        # Remove spaces AFTER « „ " ' ( [
+        string_to_parse = re.sub(r"""([«„"'(\[])\s+""", r'\1', string_to_parse)
 
         # Remove spaces BEFORE . … : , ; ? ! » “ " ' ) ]
         string_to_parse = re.sub(r"""\s+([.…:,;?!»”"')\]])""", r'\1', string_to_parse)
