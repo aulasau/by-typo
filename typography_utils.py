@@ -686,4 +686,4 @@ if __name__ == "__main__":
     # print(result.replace("\u00A0", "_NBSP_"))
 
 
-    print(result.replace("\u00A0", "_NBSP_"))
+    print(result.replace("\u00A0", "_nbsp_"))
