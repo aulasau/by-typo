@@ -10,7 +10,12 @@
     <link rel="icon" href="sloth_icon.png" type="image/x-icon"/>
 </head>
 <body>
-    <div class="container">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+    </div>
+
+    <div id="mainContent" class="container">
         <h1>By-Typo</h1>
 
         <div class="text-areas">
@@ -23,10 +28,10 @@
                 <textarea id="output" readonly placeholder="Атрымлівай выйгрыш тут!"></textarea>
             </div>
         </div>
-        <button onclick="formatText()" id="formatButton">
-            <div id="loading"><div class="spinner"></div><span>Processing...</span></div>
-            Фарматуем
-        </button>
+<!--        <button onclick="formatText()" id="formatButton">-->
+<!--            <div id="loading"><div class="spinner"></div><span>Processing...</span></div>-->
+<!--            Фарматуем-->
+<!--        </button>-->
 
     </div>
 
@@ -35,7 +40,7 @@
         let default_typo;
         let fileContent; // Declare the global variable
 
-        formatButton.disabled = true;
+<!--        formatButton.disabled = true;-->
 
         async function load_it() {
             pyodide = await loadPyodide();
@@ -110,39 +115,93 @@
             await loadAndWriteFiles();
             // Load python module
             await load_typograph()
-            formatButton.disabled = false;
+
+            // Hide the loading overlay and show the main content with transitions
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const mainContent = document.getElementById('mainContent');
+
+            loadingOverlay.style.opacity = '0';
+            mainContent.style.opacity = '1';
+
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+                mainContent.classList.add('fade-in');
+            }, 500); // Wait for the transition to complete
+<!--            formatButton.disabled = false;-->
         }
 
         load_it();
 
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputTextarea = document.getElementById('input');
+            const outputTextarea = document.getElementById('output');
+            let isScrolling = false;
 
+            function debounce(func, delay) {
+                let debounceTimer;
+                return function() {
+                    const context = this;
+                    const args = arguments;
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+                }
+            }
 
-        async function formatText() {
-            const input = document.getElementById('input').value;
-            const outputElement = document.getElementById('output');
-            const loadingElement = document.getElementById('loading');
-            const formatButton = document.getElementById('formatButton');
-
-            formatButton.disabled = true;
-
-            try {
-                // Run Python code using Pyodide
+            // Async formatText function (example)
+            async function formatText(input) {
+                // Simulating an async operation (e.g., API call)
                 const result = await pyodide.runPythonAsync(`
                     print(${JSON.stringify(input)})
                     result = default_typo.run_typographical_enhancement(${JSON.stringify(input)})
                     result
                 `);
 
-                // Convert the Python result to a JavaScript string
-                outputElement.value = result.toString();
-
-            } catch (error) {
-                outputElement.value = `Error: ${error.message}`;
-                console.error('Error during text formatting:', error);
-            } finally {
-                formatButton.disabled = false;
+                return result.toString();
             }
-        }
+
+            // Function to update the output
+            async function updateOutput() {
+                const inputText = inputTextarea.value;
+                try {
+                    const formattedText = await formatText(inputText);
+                    outputTextarea.value = formattedText;
+                    synchronizeScroll(inputTextarea, outputTextarea);
+                } catch (error) {
+                    console.error('Formatting error:', error);
+                    outputTextarea.value = 'Error occurred during formatting.';
+                }
+            }
+
+            // Create a debounced version of updateOutput
+            const debouncedUpdateOutput = debounce(() => {
+                updateOutput().catch(error => {
+                    console.error('Debounced update error:', error);
+                });
+            }, 300);
+
+            // Add event listener for input changes
+            inputTextarea.addEventListener('input', debouncedUpdateOutput);
+
+            // Scroll synchronization function
+            function synchronizeScroll(primary, secondary) {
+                if (!isScrolling) {
+                    isScrolling = true;
+                    secondary.scrollTop = primary.scrollTop;
+                    secondary.scrollLeft = primary.scrollLeft;
+                    setTimeout(() => { isScrolling = false; }, 20);
+                }
+            }
+
+            // Add scroll event listeners to both textareas
+            inputTextarea.addEventListener('scroll', () => synchronizeScroll(inputTextarea, outputTextarea));
+            outputTextarea.addEventListener('scroll', () => synchronizeScroll(outputTextarea, inputTextarea));
+
+<!--            // Initial call to set up the output on page load-->
+<!--            updateOutput().catch(error => {-->
+<!--                console.error('Initial update error:', error);-->
+<!--            });-->
+        });
+
     </script>
 
 </body>
