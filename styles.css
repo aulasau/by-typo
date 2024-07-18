@@ -142,8 +142,8 @@ label {
     }
     textarea {
         width: 100%;
-        min-height: 180px;
-        height: 180px;
+        min-height: 140px;
+        height: 140px;
         font-size: 11px;
 
     }
