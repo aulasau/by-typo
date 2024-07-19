@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>By-Typograph</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.js"></script>
+    <script src="utilities_script.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" href="img/sloth_icon.png" type="image/x-icon"/>
@@ -29,11 +32,11 @@
         <div class="text-areas">
             <div class="input-group">
                 <label for="input">Тэкст для выпраўлення:</label>
-                <textarea id="input" placeholder="Пішы тут..."></textarea>
+                <div id="input" class="editable-div" contenteditable="true" placeholder="Пішы тут..."></div>
             </div>
             <div class="output-group">
                 <label for="output">Выпраўлены:</label>
-                <textarea id="output" readonly placeholder="Атрымлівай выйгрыш тут!"></textarea>
+                <div id="output" class="editable-div" contenteditable="false" placeholder="Атрымлівай выйгрыш тут!"></div>
             </div>
         </div>
         <div class="contact-info">
@@ -43,117 +46,56 @@
     </div>
 
     <script>
-        let pyodide;
-        let default_typo;
-        let fileContent; // Declare the global variable
 
-        async function load_it() {
-            pyodide = await loadPyodide();
-            await pyodide.loadPackage("micropip");
-            await pyodide.runPythonAsync(`
-                import micropip
-                await micropip.install('regex')
-            `);
-
-            // Loading placeholders
-            fetch('resources/placeholders/raw_text.txt')
-              .then(response => response.text())
-              .then(data => {
-                document.getElementById('input').placeholder = data;
-              })
-              .catch(error => console.error('Error loading placeholder:', error));
-
-            fetch('resources/placeholders/clean_text.txt')
-              .then(response => response.text())
-              .then(data => {
-                document.getElementById('output').placeholder = data;
-              })
-              .catch(error => console.error('Error loading placeholder:', error));
-
-            // File names to be loaded
-            const codeFileName = 'typography_utils.py'
-            const resourceFileNames = [
-                'month_weekdays.txt',
-                'nbsp_after_words.txt',
-                'nbsp_before_words.txt',
-                'nbsp_multiple_words.txt'
-            ];
-
-            // Function to load a file
-            async function loadFile(filePath) {
-                try {
-                    const response = await fetch(filePath);
-                    return await response.text();
-                } catch (error) {
-                    console.error('Error loading file:', error);
-                    throw error;
-                }
-            }
-
-            // Function to load files and write to Pyodide filesystem
-            async function loadAndWriteFiles() {
-                try {
-                    // Create the 'resources' directory in Pyodide filesystem
-                    pyodide.FS.createPath('.', 'resources', true, true);
-
-                    for (const fileName of resourceFileNames) {
-                        const filePath = `resources/${fileName}`;
-                        const content = await loadFile(filePath);
-
-                        // Write the file to Pyodide filesystem
-                        pyodide.FS.writeFile(filePath, content, { encoding: "utf8" });
-                        console.log(`File ${fileName} loaded and written successfully`);
-                    }
-
-                    const pythonCode = await loadFile(codeFileName);
-                    pyodide.FS.writeFile(codeFileName, pythonCode, { encoding: "utf8" });
-                    console.log(`File ${codeFileName} loaded and written successfully`);
-
-                    // Example: Read and print contents of a file using Python
-                    // await pyodide.runPythonAsync(`
-                    //     with open("typography_utils.py") as f:
-                    //         print(f.readlines())
-
-
-                    //     with open("resources/nbsp_after_words.txt") as f:
-                    //         print(f.readlines())
-                    // `);
-
-                } catch (error) {
-                    console.error('Error in loadAndWriteFiles:', error);
-                }
-            }
-
-            async function load_typograph() {
-                await pyodide.runPythonAsync(`
-                    from typography_utils import default_typo
-                    #print('HELLO')
-                `)
-            }
-            // Call the function to load and write files
-            await loadAndWriteFiles();
-            // Load python module
-            await load_typograph()
-
-            // Hide the loading overlay and show the main content with transitions
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const mainContent = document.getElementById('mainContent');
-
-            loadingOverlay.style.opacity = '0';
-            mainContent.style.opacity = '1';
-
-            setTimeout(() => {
-                loadingOverlay.style.display = 'none';
-                mainContent.classList.add('fade-in');
-            }, 500); // Wait for the transition to complete
-        }
-
-        load_it();
+        loadPythonAndSources();
 
         document.addEventListener('DOMContentLoaded', function() {
-            const inputTextarea = document.getElementById('input');
-            const outputTextarea = document.getElementById('output');
+            const inputDiv = document.getElementById('input');
+            const outputDiv = document.getElementById('output');
             let isScrolling = false;
+
+            inputDiv.addEventListener('paste', handlePaste);
+<!--            outputDiv.addEventListener('copy', (e) => {-->
+<!--                const selection = window.getSelection();-->
+<!--                const text = selection.toString().replace(/\u00A0/g, ' ');-->
+<!--                e.clipboardData.setData('text/plain', text);-->
+<!--                e.preventDefault();-->
+<!--            });-->
+
+
+            function synchronizeScroll(primary, secondary) {
+                if (!isScrolling) {
+                    isScrolling = true;
+
+                    secondary.scrollTop = primary.scrollTop;
+<!--                    const percentage = primary.scrollTop / (secondary.scrollHeight - primary.clientHeight);-->
+<!--                    secondary.scrollTop = percentage * (secondary.scrollHeight - secondary.clientHeight);-->
+
+                    secondary.scrollLeft = primary.scrollLeft;
+
+                    setTimeout(() => { isScrolling = false; }, 20);
+                }
+            }
+
+            async function updateOutput(input, output) {
+                const inputText = input.innerText;
+                console.log(input.innerText)
+                console.log("****END OF InnerTEXT before updating**")
+
+                try {
+                    const formattedText = await formatText(inputText);
+                    let highlightedText = await highlightDiff(inputText, formattedText)
+
+                    highlightedText = highlightedText.replace(/\n/g, '<br>');
+
+                    output.innerHTML = highlightedText || formattedText;
+
+                    synchronizeScroll(input, output);
+                } catch (error) {
+                    console.error('Formatting error:', error);
+                    outputDiv.value = 'Error occurred during formatting.';
+                }
+            }
 
             function debounce(func, delay) {
                 let debounceTimer;
@@ -165,59 +107,25 @@
                 }
             }
 
-            // Async formatText function (example)
-            async function formatText(input) {
-                // Simulating an async operation (e.g., API call)
-                const result = await pyodide.runPythonAsync(`
-                    print(${JSON.stringify(input)})
-                    result = default_typo.run_typographical_enhancement(${JSON.stringify(input)})
-                    result
-                `);
-
-                return result.toString();
-            }
-
-            // Function to update the output
-            async function updateOutput() {
-                const inputText = inputTextarea.value;
-                try {
-                    const formattedText = await formatText(inputText);
-                    outputTextarea.value = formattedText;
-                    synchronizeScroll(inputTextarea, outputTextarea);
-                } catch (error) {
-                    console.error('Formatting error:', error);
-                    outputTextarea.value = 'Error occurred during formatting.';
-                }
-            }
-
             // Create a debounced version of updateOutput
             const debouncedUpdateOutput = debounce(() => {
-                updateOutput().catch(error => {
+                updateOutput(inputDiv, outputDiv).catch(error => {
                     console.error('Debounced update error:', error);
                 });
             }, 300);
 
-            // Add event listener for input changes
-            inputTextarea.addEventListener('input', debouncedUpdateOutput);
+            inputDiv.addEventListener('input', debouncedUpdateOutput);
 
-            // Scroll synchronization function
-            function synchronizeScroll(primary, secondary) {
-                if (!isScrolling) {
-                    isScrolling = true;
-                    secondary.scrollTop = primary.scrollTop;
-                    secondary.scrollLeft = primary.scrollLeft;
-                    setTimeout(() => { isScrolling = false; }, 20);
-                }
-            }
 
             // Add scroll event listeners to both textareas
-            inputTextarea.addEventListener('scroll', () => synchronizeScroll(inputTextarea, outputTextarea));
-            outputTextarea.addEventListener('scroll', () => synchronizeScroll(outputTextarea, inputTextarea));
+            inputDiv.addEventListener('scroll', () => synchronizeScroll(inputDiv, outputDiv));
+            outputDiv.addEventListener('scroll', () => synchronizeScroll(outputDiv, inputDiv));
 
 <!--            // Initial call to set up the output on page load-->
 <!--            updateOutput().catch(error => {-->
 <!--                console.error('Initial update error:', error);-->
 <!--            });-->
+
         });
 
     </script>
