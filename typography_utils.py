@@ -118,7 +118,10 @@ class ByTypograph:
         string_to_parse = re.sub(r'(!\?)', '?!', string_to_parse)
 
         # Move the period inside the quotation mark to the outside
-        string_to_parse = re.sub(r'([^.])(\.)(["»“)])(\.)?', r'\1\3\2', string_to_parse)
+        string_to_parse = re.sub(r"""([^.])(\.)(["»“')])(\.)?""", r'\1\3\2', string_to_parse)
+
+        # Insert space between , and next word
+        string_to_parse = re.sub(r'([.,:;!?])(\S)', r'\1 \2', string_to_parse)
 
         return string_to_parse
 
