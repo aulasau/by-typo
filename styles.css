@@ -130,33 +130,13 @@ body::before {
   color: #999; /* Optional: change the color as well */
 }
 .editable-div:empty:before {
-    content: attr(placeholder);
+    content: attr(data-placeholder);
     color: #888;
 }
-
 .editable-div:focus {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 3px rgba(52, 152, 219, 0.5);
-}
-
-
-.editable-div {
-    width: 100%;
-    height: 200px;
-    border: 1px solid #ccc;
-    padding: 10px;
-    white-space: pre-wrap;
-    word-break: break-all;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    overflow-x: auto;
-    overflow-y: auto;
-
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    background-color: white;
 }
 
 
@@ -166,6 +146,10 @@ label {
     font-weight: bold;
     color: #34495e;
     font-size: 16px;
+}
+
+.highlighted {
+    background-color: #a5fbb0;
 }
 
 @media (max-width: 767px) {

@@ -6,14 +6,13 @@ async function formatText(input) {
 //    console.log("*****END of INPUT TO FORMAT TEXT")
 
     const result = await pyodide.runPythonAsync(`
-        print(${JSON.stringify(input)})
+        # print(${JSON.stringify(input)})
         result = default_typo.run_typographical_enhancement(${JSON.stringify(input)})
-
-        # awful workaround to prevent HTML from converting \u00A0 in usual " ", should be changed
-        result = result.replace('\u00A0', '###NBSP###')
-
         result
     `);
+
+//    console.log(result.toString())
+//    console.log("*****END OF FORMATTING RESULT")
 
     return result.toString();
 }
@@ -24,7 +23,7 @@ async function highlightDiff(old_text, new_text) {
 
     for (const part of diff) {
         if (part.added) {
-            result += `<span style="background-color: #a5fbb0;">${encodeHTML(part.value)}</span>`;
+            result += `<span class="highlighted">${part.value}</span>`;
         } else if (!part.removed) {
             result += part.value;
         }
@@ -33,16 +32,28 @@ async function highlightDiff(old_text, new_text) {
     return result;
 }
 
-function encodeHTML(text) {
-    return text
-//        .replace(/&/g, '&amp;')
-//        .replace(/</g, '&lt;')
-//        .replace(/>/g, '&gt;')
-//        .replace(/"/g, '&quot;')
-//        .replace(/'/g, '&#039;')
-        .replace(/###NBSP###/g, '\u00A0');
+function handleFocus(event) {
+  const obj = event.target;
+  if (obj.textContent.trim() === '') {
+    obj.innerHTML = '';
+  }
+  // Add focus-specific behavior here
 }
 
+function handleBlur(event) {
+  const obj = event.target;
+  if (obj.textContent.trim() === '') {
+    obj.innerHTML = '';
+  }
+  // Add blur-specific behavior here
+}
+
+function handleCopy(e){
+    const selection = window.getSelection();
+    const text = selection.toString().replace('&nbsp;', '\u00A0');
+    e.clipboardData.setData('text/plain', text);
+    e.preventDefault();
+}
 
 function handlePaste(e) {
     // Prevent the default paste behavior
@@ -88,14 +99,14 @@ async function loadPythonAndSources() {
     fetch('resources/placeholders/raw_text.txt')
       .then(response => response.text())
       .then(data => {
-        document.getElementById('input').placeholder = data;
+        document.getElementById('input').dataset.placeholder = data;
       })
       .catch(error => console.error('Error loading placeholder:', error));
 
     fetch('resources/placeholders/clean_text.txt')
       .then(response => response.text())
       .then(data => {
-        document.getElementById('output').placeholder = data;
+        document.getElementById('output').dataset.placeholder = data;
       })
       .catch(error => console.error('Error loading placeholder:', error));
 

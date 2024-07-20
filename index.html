@@ -32,11 +32,12 @@
         <div class="text-areas">
             <div class="input-group">
                 <label for="input">Тэкст для выпраўлення:</label>
-                <div id="input" class="editable-div" contenteditable="true" placeholder="Пішы тут..."></div>
+                <div id="input" class="editable-div" contenteditable="true" data-placeholder="Пішы тут..."></div>
             </div>
             <div class="output-group">
                 <label for="output">Выпраўлены:</label>
-                <div id="output" class="editable-div" contenteditable="false" placeholder="Атрымлівай выйгрыш тут!"></div>
+<!--                <div id="output" class="editable-div" contenteditable="false" placeholder="Атрымлівай выйгрыш тут!"></div>-->
+                <div id="output" class="editable-div" data-placeholder="Атрымлівай выйгрыш тут!"></div>
             </div>
         </div>
         <div class="contact-info">
@@ -55,12 +56,9 @@
             let isScrolling = false;
 
             inputDiv.addEventListener('paste', handlePaste);
-<!--            outputDiv.addEventListener('copy', (e) => {-->
-<!--                const selection = window.getSelection();-->
-<!--                const text = selection.toString().replace(/\u00A0/g, ' ');-->
-<!--                e.clipboardData.setData('text/plain', text);-->
-<!--                e.preventDefault();-->
-<!--            });-->
+<!--            inputDiv.addEventListener('focus', handleFocus);-->
+<!--            inputDiv.addEventListener('blur', handleBlur);-->
+            outputDiv.addEventListener('copy', handleCopy);
 
 
             function synchronizeScroll(primary, secondary) {
@@ -78,17 +76,28 @@
             }
 
             async function updateOutput(input, output) {
+                // in case of invisible html symbols
+                if (input.textContent.trim() === '') {
+                    input.innerHTML = '';
+                    output.innerHTML = '';
+                    return
+                }
                 const inputText = input.innerText;
-                console.log(input.innerText)
-                console.log("****END OF InnerTEXT before updating**")
+                // console.log(input.innerText)
+                // console.log("****END OF InnerTEXT before updating**")
 
                 try {
                     const formattedText = await formatText(inputText);
                     let highlightedText = await highlightDiff(inputText, formattedText)
+                    // highlightedText = highlightedText.replace(/\n/g, '<br>');
 
-                    highlightedText = highlightedText.replace(/\n/g, '<br>');
+                    // console.log(highlightedText)
+                    // console.log("********END of HIGHLIGHTING****")
 
-                    output.innerHTML = highlightedText || formattedText;
+                    output.innerHTML = highlightedText;
+                    // console.log(output.innerHTML)
+                    // console.log("********END of INNER HTML****")
+
 
                     synchronizeScroll(input, output);
                 } catch (error) {
