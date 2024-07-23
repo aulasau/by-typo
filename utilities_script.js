@@ -49,10 +49,13 @@ function handleBlur(event) {
 }
 
 function handleCopy(e){
-    const selection = window.getSelection();
-    const text = selection.toString().replace('&nbsp;', '\u00A0');
-    e.clipboardData.setData('text/plain', text);
-    e.preventDefault();
+    // for copyButton we have separate event listener
+    if (e.target.id !== 'copyButton') {
+        const selection = window.getSelection();
+        const text = selection.toString().replace('&nbsp;', '\u00A0');
+        e.clipboardData.setData('text/plain', text);
+        e.preventDefault();
+    }
 }
 
 function handlePaste(e) {

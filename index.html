@@ -31,12 +31,19 @@
 
         <div class="text-areas">
             <div class="input-group">
-                <label for="input">Тэкст для выпраўлення:</label>
-                <div id="input" class="editable-div" contenteditable="true" data-placeholder="Пішы тут..."></div>
+                    <div class="input-header">
+                        <label for="input">Тэкст для выпраўлення:</label>
+                    </div>
+                    <div id="input" class="editable-div" contenteditable="true" data-placeholder="Пішы тут..."></div>
             </div>
             <div class="output-group">
-                <label for="output">Выпраўлены:</label>
-<!--                <div id="output" class="editable-div" contenteditable="false" placeholder="Атрымлівай выйгрыш тут!"></div>-->
+                <div class="output-header">
+                    <label for="output">Выпраўлены:</label>
+                    <button id="copyButton" class="copy-button">
+                        <img src="img/copy_icon.png" alt="Copy" class="copy-icon">
+                        Скапіраваць
+                    </button>
+                </div>
                 <div id="output" class="editable-div" data-placeholder="Атрымлівай выйгрыш тут!"></div>
             </div>
         </div>
@@ -49,6 +56,31 @@
     <script>
 
         loadPythonAndSources();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const outputDiv = document.getElementById('output');
+            const copyButton = document.getElementById('copyButton');
+
+            // Store the original button HTML
+            const originalButtonHTML = copyButton.innerHTML;
+
+            copyButton.addEventListener('click', function() {
+                const textToCopy = outputDiv.innerText;
+                navigator.clipboard.writeText(textToCopy).then(function() {
+                    // Visual feedback
+                    copyButton.innerHTML = `<img src="img/done_icon.png" alt="Copy" class="copy-icon">Скапіравана`;
+                    setTimeout(() => {
+                        // Reset to the original HTML
+                        copyButton.innerHTML = originalButtonHTML;
+                    }, 2000);
+                }).catch(function(err) {
+                    console.error('Failed to copy text: ', err);
+                    // Ensure the button resets even if copying fails
+                    copyButton.innerHTML = originalButtonHTML;
+                });
+            });
+        });
+
 
         document.addEventListener('DOMContentLoaded', function() {
             const inputDiv = document.getElementById('input');
@@ -65,9 +97,9 @@
                 if (!isScrolling) {
                     isScrolling = true;
 
-                    secondary.scrollTop = primary.scrollTop;
-<!--                    const percentage = primary.scrollTop / (secondary.scrollHeight - primary.clientHeight);-->
-<!--                    secondary.scrollTop = percentage * (secondary.scrollHeight - secondary.clientHeight);-->
+<!--                    secondary.scrollTop = primary.scrollTop;-->
+                    const percentage = primary.scrollTop / (secondary.scrollHeight - primary.clientHeight);
+                    secondary.scrollTop = percentage * (secondary.scrollHeight - secondary.clientHeight);
 
                     secondary.scrollLeft = primary.scrollLeft;
 
