@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>By-Typograph</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>By-Typo</title>
     <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/5.2.0/diff.js"></script>
     <script src="utilities_script.js"></script>
+    <script src="main_script.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="img/sloth_icon.png" type="image/x-icon"/>
+    <link href="styles.css" rel="stylesheet">
+    <link href="img/sloth_icon.png" rel="icon" type="image/x-icon"/>
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
@@ -18,7 +19,8 @@
         <span>Loading...</span>
     </div>
 
-    <div id="mainContent" class="container">
+    <div class="container" id="mainContent">
+
         <div class="full-header">
             <div class="header-container">
               <h1>By-Typo</h1>
@@ -34,142 +36,136 @@
                     <div class="input-header">
                         <label for="input">Тэкст для выпраўлення:</label>
                     </div>
-                    <div id="input" class="editable-div" contenteditable="true" data-placeholder="Пішы тут..."></div>
+                    <div class="editable-div" contenteditable="true" data-placeholder="Пішы тут..." id="input"></div>
             </div>
             <div class="output-group">
                 <div class="output-header">
                     <label for="output">Выпраўлены:</label>
-                    <button id="copyButton" class="copy-button">
-                        <img src="img/copy_icon.png" alt="Copy" class="copy-icon">
+                    <button class="copy-button" id="copyButton">
+                        <img alt="Copy" class="copy-icon" src="img/copy_icon.png">
                         Скапіраваць
                     </button>
                 </div>
-                <div id="output" class="editable-div" data-placeholder="Атрымлівай выйгрыш тут!"></div>
+                <div class="editable-div" data-placeholder="Атрымлівай выйгрыш тут!" id="output"></div>
             </div>
         </div>
-        <div class="contact-info">
-            <p>З памылкамі сюды:<br><a href="twitter.com/aulasau">twitter.com/aulasau</a><br><u>aulasau.public@gmail.com</u></p>
+
+        <div class="footer-wrapper">
+          <div class="toggle-details">
+              <span class="toggle-text"><u>Больш пра магчымасці</u></span>
+            <span class="toggle-icon">▼</span>
+          </div>
+          <div class="contact-info">
+            <span class="contact-label">З памылкамі сюды:</span>
+            <a href="https://twitter.com/aulasau">twitter.com/aulasau</a>
+            <span class="separator">|</span>
+            <a href="mailto:aulasau.public@gmail.com">aulasau.public@gmail.com</a>
+          </div>
         </div>
+        <div class="details-content" style="display: none;">
+                <hr class="horizontal_line">
+                <section>
+                  <h3>Правілы, якія выкарыстоўвае тыпограф</h3>
+                  <div class="pluginRules">
+                    <div class="pluginRules__item">
+                      <div class="pluginRules__title">Карэктар Ў</div>
+                      <div class="pluginRules__content">
+                        <ul class="listBlock">
+                          <li>Замена літары <em>у</em> на <em>ў</em> у словах, дзе яна павінна ўжывацца</li>
+                          <li>Замена літары <em>ў</em> на <em>у</em> на пачатку сказа або пасля зычных</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="pluginRules__item">
+                      <div class="pluginRules__title">Двукоссі</div>
+                      <div class="pluginRules__content">
+                        <ul class="listBlock">
+                            <li>Замена "простых двукоссяў" на «ялінкі» ды „лапкі" <samp>"На заінелым трамвайным акне
+                                хтось напісау:
+                                'Я кахаю'."</samp>
+                                ->
+                                <samp>«На заінелым трамвайным акне
+                                хтось напісаў:
+                                „Я кахаю“».</samp></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="pluginRules__item">
+                      <div class="pluginRules__title">Працяжнік</div>
+                      <div class="pluginRules__content">
+                        <ul class="listBlock">
+                          <li>У пачатку радка або сказа, доўгі працяжнік + нераздзяляльны прабел</li>
+                          <li>Для дыяпазонаў месяцаў і дзён тыдня выкарыстоўваем сярэдні працяжнік без прабелаў <samp>студзень–сакавік, панядзелак–субота</samp></li>
+                          <li>Працуе і для кароткіх пазначэнняў(калі ё заўвагі па скарочанай версіі месяца, напішыце!)<samp>студ–сак, пн–сб</samp></li>
+                          <li>Унутры тэксту выкарыстоўваем нераздзяляльны прабел + доўгі працяжнік <samp>А геній і злачынства — дзве рэчы несумяшчальныя</samp></li>
+                          <li>Для дыяпазонаў лічбаў выкарыстоўваем сярэдні працяжнік без прабелаў <samp>2002–2009, XI–XII</samp></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="pluginRules__item">
+                      <div class="pluginRules__title">Пунктуацыя</div>
+                      <div class="pluginRules__content">
+                        <ul class="listBlock">
+                          <li>Замена <em>!?</em> на <em>?!</em></li>
+                          <li>Замена <em>...?</em> на <em>?‥</em> і <em>...!</em> на <em>!‥</em></li>
+                          <li>Замена <em>?...</em> на <em>?‥</em> і <em>!...</em> на <em>!‥</em></li>
+                          <li>Замена <em>...</em> на знак шматкроп'я …</li>
+                          <li>Замяняем некалькі знакаў <em>? ! . , ; : -</em> на адзін <samp>Гатова!!! ⟶ Гатова!</samp></li>
+                          <li>Перанос кропкі за закрываючае двукоссе/дужку</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="pluginRules__item">
+                      <div class="pluginRules__title">Прабелы</div>
+                      <div class="pluginRules__content">
+                        <ul class="listBlock">
+                          <li>Устаўка прабелу пасля <em>, . , : ; ! ? </em> перад наступным словам</li>
+                          <li>Выдаленне прабелу пасля <em>« „ ( [</em></li>
+                          <li>Выдаленне прабелу перад <em>. … : , ; ? ! » " "" ) ]</em></li>
+                          <li>Выдаленне прабелу паміж лічбай і <em>%</em> <samp>23%</samp></li>
+                          <li>Выдаленне прабелаў у пачатку і канцы радка</li>
+                          <li>Выдаленне падвойных прабелаў</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="pluginRules__item">
+                      <div class="pluginRules__title">Нераздзяляльны прабел</div>
+                      <div class="pluginRules__content">
+                        <ul class="listBlock">
+                          <li>Нераздзяляльны прабел паміж ініцыяламі і прозвішчам. Ініцыялы разам, затым нераздзяляльны прабел і прозвішча. Або прозвішча, нераздзяляльны прабел і злітна ініцыялы. <samp>М.І. Гарэцкі, Купала Я.</samp></li>
+    <!--                      <li>Нераздзяляльныя прабелы паміж словам і <em>і г.д., і г.п., і інш.</em></li>-->
+                          <li>Нераздзяляльны прабел паміж лічбай і наступным словам</li>
+                          <li>Нераздзяляльны прабел перад <em>б, бы, ж, жа</em></li>
+                          <li>Нераздзяляльны прабел перад апошнім кароткім словам у сказе або адзіночным радку</li>
+                          <li>Нераздзяляльны прабел пасля кароткага слова (да 3 сымбалаў)</li>
+    <!--                      <li>Нераздзяляльны прабел пасля <em>г., вобл., кр., ст., пас., в., вёс., вул., зав., пр., пр-т., просп., пл., бул., б-р, наб., ш., туп., оф., кв., пак., пад'езд., мкр., уч., ул., улад., буд., корп., літар, пав., пгт., гл., мал., іл., арт., п., c., а, б, без, быццам, бы, у, ва, вось, усё, дзе, ды, нават, для, да, калі, ёсць, яшчэ, жа, за, і, з, са, з-за, з-пад, або, ці, к, ка, як, ці, або, паміж, на, над, трэба, не, ні, але, аб, пра, каля, яно, ад, ад, перад, па, па-за, па-над, пад, пада, пасля, пры, пра, дзеля, з, са, скрозь, так, таксама, там, тым, то, тады, таго, таксама, у, хоць, хаця, чаго, праз, што, каб, гэта</em></li>-->
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="pluginRules__item">
+                      <div class="pluginRules__title">Лічбы перад знакам валюты</div>
+                      <div class="pluginRules__content">
+                        <ul class="listBlock">
+                          <li>Разбіўка доўгіх лічбаў па разрадах <samp>2345123 $ ⟶ 2 345 123 $</samp></li>
+                          <li>Пасля <em>тыс.</em> павінна быць кропка, а пасля <em>млн</em>, <em>млрд</em>, <em>трлн</em> кропкі быць не павінна <samp>5 тыс., 2 млн, 1 млрд, 3 трлн</samp></li>
+                        </ul>
+                      </div>
+                    </div>
+                    <div class="pluginRules__item">
+                      <div class="pluginRules__title">Валюта</div>
+                      <div class="pluginRules__content">
+                        <ul class="listBlock">
+                          <li>Замена <em>USD і EUR</em> на <em>$ і €</em> <samp>20usd ⟶ 20 $</samp></li>
+                          <li>Перанос знака валюты пасля лічбаў і аддзяленне яго нераздзяляльным прабелам <samp>$ 109 ⟶ 109 $, 109$ ⟶ 109 $</samp></li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                </section>
+            </details>
+            </div>
 
-    </div>
-
-    <script>
-
-        loadPythonAndSources();
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const outputDiv = document.getElementById('output');
-            const copyButton = document.getElementById('copyButton');
-
-            // Store the original button HTML
-            const originalButtonHTML = copyButton.innerHTML;
-
-            copyButton.addEventListener('click', function() {
-                const textToCopy = outputDiv.innerText;
-                navigator.clipboard.writeText(textToCopy).then(function() {
-                    // Visual feedback
-                    copyButton.innerHTML = `<img src="img/done_icon.png" alt="Copy" class="copy-icon">Скапіравана`;
-                    setTimeout(() => {
-                        // Reset to the original HTML
-                        copyButton.innerHTML = originalButtonHTML;
-                    }, 2000);
-                }).catch(function(err) {
-                    console.error('Failed to copy text: ', err);
-                    // Ensure the button resets even if copying fails
-                    copyButton.innerHTML = originalButtonHTML;
-                });
-            });
-        });
-
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const inputDiv = document.getElementById('input');
-            const outputDiv = document.getElementById('output');
-            let isScrolling = false;
-
-            inputDiv.addEventListener('paste', handlePaste);
-<!--            inputDiv.addEventListener('focus', handleFocus);-->
-<!--            inputDiv.addEventListener('blur', handleBlur);-->
-            outputDiv.addEventListener('copy', handleCopy);
-
-
-            function synchronizeScroll(primary, secondary) {
-                if (!isScrolling) {
-                    isScrolling = true;
-
-<!--                    secondary.scrollTop = primary.scrollTop;-->
-                    const percentage = primary.scrollTop / (secondary.scrollHeight - primary.clientHeight);
-                    secondary.scrollTop = percentage * (secondary.scrollHeight - secondary.clientHeight);
-
-                    secondary.scrollLeft = primary.scrollLeft;
-
-                    setTimeout(() => { isScrolling = false; }, 20);
-                }
-            }
-
-            async function updateOutput(input, output) {
-                // in case of invisible html symbols
-                if (input.textContent.trim() === '') {
-                    input.innerHTML = '';
-                    output.innerHTML = '';
-                    return
-                }
-                const inputText = input.innerText;
-                // console.log(input.innerText)
-                // console.log("****END OF InnerTEXT before updating**")
-
-                try {
-                    const formattedText = await formatText(inputText);
-                    let highlightedText = await highlightDiff(inputText, formattedText)
-                    // highlightedText = highlightedText.replace(/\n/g, '<br>');
-
-                    // console.log(highlightedText)
-                    // console.log("********END of HIGHLIGHTING****")
-
-                    output.innerHTML = highlightedText;
-                    // console.log(output.innerHTML)
-                    // console.log("********END of INNER HTML****")
-
-
-                    synchronizeScroll(input, output);
-                } catch (error) {
-                    console.error('Formatting error:', error);
-                    outputDiv.value = 'Error occurred during formatting.';
-                }
-            }
-
-            function debounce(func, delay) {
-                let debounceTimer;
-                return function() {
-                    const context = this;
-                    const args = arguments;
-                    clearTimeout(debounceTimer);
-                    debounceTimer = setTimeout(() => func.apply(context, args), delay);
-                }
-            }
-
-            // Create a debounced version of updateOutput
-            const debouncedUpdateOutput = debounce(() => {
-                updateOutput(inputDiv, outputDiv).catch(error => {
-                    console.error('Debounced update error:', error);
-                });
-            }, 300);
-
-            inputDiv.addEventListener('input', debouncedUpdateOutput);
-
-
-            // Add scroll event listeners to both textareas
-            inputDiv.addEventListener('scroll', () => synchronizeScroll(inputDiv, outputDiv));
-            outputDiv.addEventListener('scroll', () => synchronizeScroll(outputDiv, inputDiv));
-
-<!--            // Initial call to set up the output on page load-->
-<!--            updateOutput().catch(error => {-->
-<!--                console.error('Initial update error:', error);-->
-<!--            });-->
-
-        });
-
-    </script>
-
+<!--    </div>-->
 </body>
 </html>
