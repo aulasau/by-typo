@@ -82,6 +82,7 @@ class ByTypograph:
             "multiple_words_nbsp": multiple_words_nbsp
         }
 
+
     @staticmethod
     def punctuation(string_to_parse):
         # Replace ...? → ?‥ and ...! → !‥
@@ -120,8 +121,14 @@ class ByTypograph:
         # Move the period inside the quotation mark to the outside
         string_to_parse = re.sub(r"""([^.])(\.)(["»“')])(\.)?""", r'\1\3\2', string_to_parse)
 
-        # Insert space between , and next word
-        string_to_parse = re.sub(r'([.,:;!?])(\S)', r'\1 \2', string_to_parse)
+        def custom_sub(match):
+            left, sign, right = match.groups()
+            if not ( left.isdigit() and right.isdigit() ):
+                return f"{left}{sign} {right}"
+            return match.group()
+
+        # Insert space between ,.,:;!? and next word
+        string_to_parse = re.sub(r'(.)([.,:;!?])(\S)', custom_sub, string_to_parse)
 
         return string_to_parse
 
@@ -364,106 +371,6 @@ class ByTypograph:
         # Perform the replacement
         return re.sub(pattern, replace, string_to_parse, flags=re.MULTILINE)
 
-    @staticmethod
-    def yo(string_to_parse, yo_dict):
-        """
-        Not really need it for Belarusian, but as legacy let it be here.
-        """
-
-        def replace_word(match):
-            word = match.group(1)
-            word_lower = word.lower()
-
-            if word_lower in yo_dict:
-                yo_dict_word = yo_dict[word_lower]
-                word_all_case = ''
-
-                for i, char in enumerate(word):
-                    if char.lower() == yo_dict_word[i]:
-                        # The letter from the word is equal to the letter from the dictionary word
-                        word_all_case += char
-                    else:
-                        # The letters don't match. Either it's a different case or 'е' vs 'ё'
-                        if char.isupper():
-                            # uppercase
-                            if char.upper() == yo_dict_word[i].upper():
-                                # Compare the uppercase letter of the main word with the uppercase letter of the dictionary word
-                                # If they match, append
-                                word_all_case += char
-                            else:
-                                # They don't match, so it's a replacement of 'е' with 'ё'
-                                word_all_case += yo_dict_word[i].upper()
-                        else:
-                            # lowercase
-                            # They don't match, so it's a replacement of 'е' with 'ё'
-                            word_all_case += yo_dict_word[i]
-
-                return word_all_case
-
-            return word
-
-        # Split the text into words and replace them
-        return re.sub(r"""([а-яёіўєґї']+)""", replace_word, string_to_parse, flags=re.IGNORECASE)
-
-    @staticmethod
-    def phone_number(string_to_parse, phone_code_ru, nbsp='\u00A0'):
-        """
-        Not sure that this functionality is in the scope, but let bring it here as legacy.
-        Haven't tested it.
-        """
-        # Space or non-breaking space
-        space_tmpl = r'[\u0020\u00A0]?'
-        # Any dash
-        dash_tmpl = r'[\u002D\u2012\u2013\u2014]?'
-        # Space or non-breaking space or any dash
-        space_dash_tmpl = r'[\u0020\u00A0\u002D\u2012\u2013\u2014]?'
-
-        # Special symbol for dash in phone numbers
-        special_dash = '<phoneDash>'
-
-        # Federal number 8 800
-        re_federal = re.compile(
-            rf'[\+\(]*?{space_tmpl}(8){space_tmpl}{dash_tmpl}\(?'
-            rf'(800){space_tmpl}{dash_tmpl}[\)]?{space_dash_tmpl}'
-            rf'(\d){space_dash_tmpl}(\d){space_dash_tmpl}(\d){space_dash_tmpl}'
-            rf'(\d){space_dash_tmpl}(\d){space_dash_tmpl}(\d){space_dash_tmpl}(\d)'
-        )
-
-        def format_federal(match):
-            groups = match.groups()
-            formatted = f"{groups[0]}{nbsp}({groups[1]}){nbsp}{''.join(groups[2:5])}{special_dash}{''.join(groups[5:7])}{special_dash}{''.join(groups[7:])}"
-            return formatted
-
-        string_to_parse = re_federal.sub(format_federal, string_to_parse)
-
-        # Russian numbers +7 (333) 333-22-22
-        re_ru = re.compile(
-            rf'[\+\(]*?{space_tmpl}(7|8){space_tmpl}{dash_tmpl}\(?'
-            rf'({phone_code_ru}){space_tmpl}{dash_tmpl}[\)]?{space_dash_tmpl}'
-            rf'(\d){space_dash_tmpl}(\d){space_dash_tmpl}(\d){space_dash_tmpl}'
-            rf'(\d){space_dash_tmpl}(\d){space_dash_tmpl}(\d)?{space_dash_tmpl}(\d)?'
-        )
-
-        def format_ru(match):
-            groups = match.groups()
-            area_code = groups[1]
-            if len(area_code) == 3:
-                formatted = f"+7{nbsp}({area_code}){nbsp}{''.join(groups[2:5])}{special_dash}{''.join(groups[5:7])}{special_dash}{''.join(groups[7:])}"
-            elif len(area_code) == 4:
-                formatted = f"+7{nbsp}({area_code}){nbsp}{''.join(groups[2:4])}{special_dash}{''.join(groups[4:6])}{special_dash}{''.join(groups[6:8])}"
-            return formatted
-
-        string_to_parse = re_ru.sub(format_ru, string_to_parse)
-
-        # Short number 900
-        string_to_parse = re.sub(
-            r'(^|\D)(\+900|\#900|\@900)(\D|$)',
-            r'\1900\3',
-            string_to_parse, flags=re.MULTILINE
-        )
-
-        return string_to_parse
-
     def dash(self, string_to_parse, nbsp='\u00A0'):
         # All types of dashes
         dash_all = r'[\u002D\u2012\u2013\u2014]'
@@ -505,8 +412,8 @@ class ByTypograph:
             string_to_parse
         )
 
-        # Replace <phoneDash> from phoneNumber() function with hyphen
-        string_to_parse = re.sub(r'<phoneDash>', '\u002D', string_to_parse)
+        # # Replace <phoneDash> from phoneNumber() function with hyphen
+        # string_to_parse = re.sub(r'<phoneDash>', '\u002D', string_to_parse)
 
         return string_to_parse
 
@@ -536,7 +443,7 @@ class ByTypograph:
                                       lambda m: m.group(1) + non_breaking_space,
                                       integer_part)
 
-            fractional_part = f',{fractional_part}' if fractional_part else ''
+            fractional_part = f'.{fractional_part}' if fractional_part else ''
 
             currency_part = currency_part or ''
             return f'{integer_part}{fractional_part}{currency_part}'
@@ -619,21 +526,6 @@ class ByTypograph:
         string_to_parse = re.sub(r'(\d|тыс\.|млн|млрд|трлн)(\u0020|\u00A0)?(EUR)\.?([!?,:;\u00A0\u0020\n]|$)',
                                  rf'\1{nbsp}€\4', string_to_parse, flags=re.IGNORECASE | re.MULTILINE)
 
-        # Convert Р, р., руб. RUR RUB to ₽
-        string_to_parse = re.sub(r'(\d|тыс\.|млн|млрд|трлн)(\u0020|\u00A0)?(р|руб|RUR|RUB)\.?([!?,:;\u00A0\u0020\n]|$)',
-                                 rf'\1{nbsp}₽\4', string_to_parse, flags=re.IGNORECASE | re.MULTILINE)
-
-        # Incorporate kopeks into the main amount
-        string_to_parse = re.sub(
-            r'(\d)(\u00A0₽)(\u0020|\u00A0)(\d{1,2})(\u0020|\u00A0)?(к|коп)\.?([!?,:;\u00A0\u0020\n]|$)',
-            lambda m: f"{m.group(1)},{m.group(4).zfill(2)}{m.group(2)}{m.group(7)}", string_to_parse,
-            flags=re.IGNORECASE | re.MULTILINE)
-
-        # Add dot after ₽ at the end of a sentence
-        string_to_parse = re.sub(r'(\d\u00A0₽)(\u0020|\u00A0)((«|—(\u0020|\u00A0))?[A-ZА-ЯЁІЎЄҐЇ])', r'\1.\2\3',
-                                 string_to_parse,
-                                 flags=re.MULTILINE)
-
         # Move currency sign after digits and separate with non-breaking space
         string_to_parse = re.sub(
             r'(^|[\D]{2})(₽|\$|€|£|¥)[\u0020\u00A0]?(\d+([\u0020\u00A0]\d{3})*([.,]\d+)?)([\u0020\u00A0]?(тыс\.|млн|млрд|трлн))?',
@@ -656,8 +548,6 @@ class ByTypograph:
             self.add_no_break_space,
             self.replace_y_with_short_u,
             self.replace_short_u_with_y,
-            # yo,
-            # phone_number,
             self.dash,
             self.currency,
             self.numbers
