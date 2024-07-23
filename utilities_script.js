@@ -32,6 +32,58 @@ async function highlightDiff(old_text, new_text) {
     return result;
 }
 
+
+async function updateOutput(input, output, isScrolling) {
+    // in case of invisible html symbols
+    if (input.textContent.trim() === '') {
+        input.innerHTML = '';
+        output.innerHTML = '';
+        return
+    }
+    const inputText = input.innerText;
+    // console.log(input.innerText)
+    // console.log("****END OF InnerTEXT before updating**")
+
+    try {
+        const formattedText = await formatText(inputText);
+        let highlightedText = await highlightDiff(inputText, formattedText)
+        // highlightedText = highlightedText.replace(/\n/g, '<br>');
+
+        // console.log(highlightedText)
+        // console.log("********END of HIGHLIGHTING****")
+
+        output.innerHTML = highlightedText;
+        // console.log(output.innerHTML)
+        // console.log("********END of INNER HTML****")
+
+
+        synchronizeScroll(input, output, isScrolling);
+    } catch (error) {
+        console.error('Formatting error:', error);
+        outputDiv.value = 'Error occurred during formatting.';
+    }
+}
+
+function debounce(func, delay) {
+    let timer;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function synchronizeScroll(primary, secondary, isScrolling) {
+    if (!isScrolling) {
+        requestAnimationFrame(() => {
+            const percentage = primary.scrollTop / (primary.scrollHeight - primary.clientHeight);
+            secondary.scrollTop = percentage * (secondary.scrollHeight - secondary.clientHeight);
+            secondary.scrollLeft = primary.scrollLeft;
+            isScrolling = false;
+        });
+        isScrolling = true;
+    }
+}
+
 function handleFocus(event) {
   const obj = event.target;
   if (obj.textContent.trim() === '') {
@@ -40,6 +92,7 @@ function handleFocus(event) {
   // Add focus-specific behavior here
 }
 
+
 function handleBlur(event) {
   const obj = event.target;
   if (obj.textContent.trim() === '') {
@@ -47,6 +100,7 @@ function handleBlur(event) {
   }
   // Add blur-specific behavior here
 }
+
 
 function handleCopy(e){
     // for copyButton we have separate event listener
@@ -57,6 +111,7 @@ function handleCopy(e){
         e.preventDefault();
     }
 }
+
 
 function handlePaste(e) {
     // Prevent the default paste behavior
