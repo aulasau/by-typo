@@ -145,7 +145,22 @@ function handlePaste(e) {
 }
 
 
+function setWeekdayBackground(date) {
+  // Get today's weekday number (0 for Sunday, 1 for Monday, etc.)
+  const weekdayNum = date.getDay();
+  // Construct the image path using template literals
+  const imagePath = `img/back/background_${weekdayNum}.png`;
+  // Set the background image for the body
+  document.body.style.backgroundImage = `url(${imagePath})`;
+}
+
+
 async function loadPythonAndSources() {
+
+//    document.addEventListener('DOMContentLoaded', function() {
+//        setWeekdayBackground(new Date('07.23.2024'));
+//    });
+
     pyodide = await loadPyodide();
     await pyodide.loadPackage("micropip");
     await pyodide.runPythonAsync(`
