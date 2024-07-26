@@ -157,9 +157,9 @@ function setWeekdayBackground(date) {
 
 async function loadPythonAndSources() {
 
-//    document.addEventListener('DOMContentLoaded', function() {
-//        setWeekdayBackground(new Date('07.23.2024'));
-//    });
+    document.addEventListener('DOMContentLoaded', function() {
+        setWeekdayBackground(new Date('07.27.2024'));
+    });
 
     pyodide = await loadPyodide();
     await pyodide.loadPackage("micropip");
