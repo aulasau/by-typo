@@ -148,6 +148,7 @@ function handlePaste(e) {
 function setWeekdayBackground(date) {
   // Get today's weekday number (0 for Sunday, 1 for Monday, etc.)
   const weekdayNum = date.getDay();
+  console.log(`Weekday num is ${weekdayNum}. Setting background.`)
   // Construct the image path using template literals
   const imagePath = `img/back/background_${weekdayNum}.png`;
   // Set the background image for the body
@@ -158,7 +159,7 @@ function setWeekdayBackground(date) {
 async function loadPythonAndSources() {
 
     document.addEventListener('DOMContentLoaded', function() {
-        setWeekdayBackground(new Date('07.27.2024'));
+        setWeekdayBackground(new Date());
     });
 
     pyodide = await loadPyodide();
