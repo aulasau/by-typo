@@ -1,6 +1,6 @@
 body {
     font-family: 'Roboto', sans-serif;
-    background-image: url('img/sloth/background_5.png');
+   /* background-image: url('img/back/background_1.png'); */
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -29,6 +29,7 @@ body::before {
 
 .container {
     background-color: rgba(255, 255, 255, 0.75);
+    /*background-color: rgba(255, 255, 255, 0.3); */
     border-radius: 10px;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.8);
     padding: 40px;
@@ -265,6 +266,12 @@ label {
   box-sizing: border-box;
 }
 */
+
+.details-content a{
+    color: #007bff;
+    color:grey;
+}
+
 
 h3 {
   position: relative;
