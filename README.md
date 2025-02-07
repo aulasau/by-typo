@@ -1,7 +1,7 @@
 [![Static Badge](https://img.shields.io/badge/Click_me-By--Typo-red?style=for-the-badge&labelColor=fedcba)](https://aulasau.github.io/by-typo/)
 # By-Typo
 
-By-Typo is a web-based typographic tool designed to enhance Belarusian text by applying various typographic rules and corrections.
+By-Typo is a smart web tool that instantly refines Belarusian text, applying typographic rules for a clean, professional look.
 
 It's an adaptation of [SBOLTypograph repo](https://github.com/DanilovM/SBOLTypograph) to Python and Belarusian.
 
